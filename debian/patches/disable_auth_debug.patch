@@ -1,0 +1,11 @@
+--- a/auth_ejabberd_oc.php
++++ b/auth_ejabberd_oc.php
+@@ -29,7 +29,7 @@
+ $oc_root = '/usr/lib/nextcloud/www/';
+ 
+ /** Should we log the activity of this script? */
+-$debugging = true;
++$debugging = false;
+ 
+ //#############End#of#config######################
+ 
