@@ -1,0 +1,10 @@
+--- a/build/appinfo/info.xml
++++ b/build/appinfo/info.xml
+@@ -8,6 +8,7 @@
+    <author>Klaus Herberth, Tobia De Koninck</author>
+    <requiremin>8.0</requiremin>
+    <namespace>OJSXC</namespace>
++   <default_enable/>
+ 
+    <types>
+       <prelogin/>

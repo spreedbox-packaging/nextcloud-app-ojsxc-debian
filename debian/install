@@ -1,0 +1,3 @@
+build/*  usr/lib/nextcloud/www/apps/ojsxc
+auth_ejabberd_oc.php   usr/share/nextcloud-app-ojsxc
+auth_oc_user.php    usr/share/nextcloud-app-ojsxc

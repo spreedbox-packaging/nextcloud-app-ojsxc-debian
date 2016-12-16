@@ -1,0 +1,22 @@
+Source: nextcloud-app-ojsxc
+Section: web
+Priority: optional
+Maintainer: struktur AG <opensource@struktur.de>
+Uploaders:
+ Joachim Bauch <bauch@struktur.de>
+Build-Depends:
+ debhelper (>= 9),
+ quilt
+Standards-Version: 3.9.5
+
+Package: nextcloud-app-ojsxc
+Architecture: all
+Depends:
+ ${misc:Depends},
+ logrotate,
+ nextcloud-server,
+ spreedbox-php (>= 0.1.1)
+Description: XMPP chat app jsxc for Nextcloud
+ This package installs the XMPP chat app jsxc for Nextcloud.
+ .
+ jsxc - Facebook-like XMPP chat for Nextcloud with OTR-encryption.

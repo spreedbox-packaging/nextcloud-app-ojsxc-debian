@@ -1,0 +1,71 @@
+#!/bin/bash -e
+
+export PATH=$PATH:/sbin:/usr/sbin:/bin:/usr/bin
+
+export OCC=/usr/bin/occ.nextcloud
+
+invoke() {
+    if [ -x /usr/sbin/invoke-rc.d ]; then
+        invoke-rc.d $1 $2
+    else
+        /etc/init.d/$1 $2
+    fi
+}
+
+mark_shipped() {
+    if [ -x "/usr/share/spreedbox-nextcloud/spreedbox-mark-shipped" ]; then
+        /usr/share/spreedbox-nextcloud/spreedbox-mark-shipped ojsxc
+    fi
+}
+
+case "$1" in
+    configure)
+        if [ -e "/usr/lib/nextcloud/www/core/shipped.json" ]; then
+            mark_shipped
+        fi
+        if [ -s "/etc/nextcloud/config.php" ]; then
+            if [ -x "$OCC" ]; then
+                set +e
+                $OCC upgrade
+                rc=$?
+                set -e
+                if [ "$rc" != "0" ] && [ "$rc" != "3" ]; then
+                    echo "**************************************************************************"
+                    echo "** Automatic update failed, please run 'occ.nextcloud upgrade' manually **"
+                    echo "** after the installation to finish upgrading the ojsxc Nextcloud       **"
+                    echo "** application!                                                         **"
+                    echo "**************************************************************************"
+                fi
+            else
+                echo "*************************************************************************"
+                echo "** Please run 'occ.nextcloud upgrade' after the installation to finish **"
+                echo "** upgrading the ojsxc Nextcloud application!                          **"
+                echo "*************************************************************************"
+            fi
+            chmod 775 /etc/nextcloud/
+            chmod 660 /etc/nextcloud/config.php
+        fi
+        if [ -e "/etc/nextcloud/config.php" ]; then
+        fi
+        if [ -d "/usr/lib/nextcloud/www/apps/" ]; then
+            chmod 775 /usr/lib/nextcloud/www/apps/
+        fi
+        ;;
+
+    triggered)
+        if [ -e "/usr/lib/nextcloud/www/core/shipped.json" ]; then
+            mark_shipped
+        fi
+        dpkg-trigger spreedbox-restart-php-fpm
+        ;;
+
+    abort-upgrade|abort-remove|abort-configure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" 1>&2
+        exit 1
+        ;;
+esac
+
+#DEBHELPER#
