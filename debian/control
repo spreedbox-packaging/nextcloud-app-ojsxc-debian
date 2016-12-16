@@ -13,7 +13,6 @@ Package: nextcloud-app-ojsxc
 Architecture: all
 Depends:
  ${misc:Depends},
- logrotate,
  nextcloud-server,
  spreedbox-php (>= 0.1.1)
 Description: XMPP chat app jsxc for Nextcloud
