@@ -2,3 +2,4 @@ default_enable.patch
 nextcloud_version.patch
 nextcloud_paths.patch
 disable_auth_debug.patch
+default_configuration.patch

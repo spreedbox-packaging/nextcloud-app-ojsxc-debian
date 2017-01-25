@@ -1,0 +1,44 @@
+--- a/build/ajax/getSettings.php
++++ b/build/ajax/getSettings.php
+@@ -39,8 +39,17 @@
+     exit;
+ }
+ 
+-$data ['xmpp'] ['url'] = $config->getAppValue('ojsxc', 'boshUrl');
+-$data ['xmpp'] ['domain'] = $config->getAppValue('ojsxc', 'xmppDomain');
++$request = \OC::$server->getRequest();
++$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
++if (empty($boshUrl) && $request) {
++  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
++}
++$data ['xmpp'] ['url'] = $boshUrl;
++$xmppDomain = $config->getAppValue('ojsxc', 'xmppDomain');
++if (empty($xmppDomain)) {
++  $xmppDomain = $request->getServerHost();
++}
++$data ['xmpp'] ['domain'] = $xmppDomain;
+ $data ['xmpp'] ['resource'] = $config->getAppValue('ojsxc', 'xmppResource');
+ $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
+ $data ['xmpp'] ['onlogin'] = true;
+--- a/build/settings.php
++++ b/build/settings.php
+@@ -8,8 +8,17 @@
+ $tmpl = new OCP\Template('ojsxc', 'settings');
+ 
+ $tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType'));
+-$tmpl->assign('boshUrl', $config->getAppValue('ojsxc', 'boshUrl'));
+-$tmpl->assign('xmppDomain', $config->getAppValue('ojsxc', 'xmppDomain'));
++$request = \OC::$server->getRequest();
++$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
++if (empty($boshUrl) && $request) {
++  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
++}
++$tmpl->assign('boshUrl', $boshUrl);
++$xmppDomain = $config->getAppValue('ojsxc', 'xmppDomain');
++if (empty($xmppDomain)) {
++  $xmppDomain = $request->getServerHost();
++}
++$tmpl->assign('xmppDomain', $xmppDomain);
+ $tmpl->assign('xmppResource', $config->getAppValue('ojsxc', 'xmppResource'));
+ $tmpl->assign('xmppOverwrite', $config->getAppValue('ojsxc', 'xmppOverwrite'));
+ $tmpl->assign('xmppStartMinimized', $config->getAppValue('ojsxc', 'xmppStartMinimized'));
