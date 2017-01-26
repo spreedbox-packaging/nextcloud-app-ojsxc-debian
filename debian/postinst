@@ -45,8 +45,6 @@ case "$1" in
             chmod 775 /etc/nextcloud/
             chmod 660 /etc/nextcloud/config.php
         fi
-        if [ -e "/etc/nextcloud/config.php" ]; then
-        fi
         if [ -d "/usr/lib/nextcloud/www/apps/" ]; then
             chmod 775 /usr/lib/nextcloud/www/apps/
         fi
