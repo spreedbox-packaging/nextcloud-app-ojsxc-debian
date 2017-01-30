@@ -1,7 +1,7 @@
---- a/build/appinfo/info.xml
-+++ b/build/appinfo/info.xml
-@@ -8,6 +8,7 @@
-    <author>Klaus Herberth, Tobia De Koninck</author>
+--- a/appinfo/info.xml
++++ b/appinfo/info.xml
+@@ -11,6 +11,7 @@
+    <author>Tobia De Koninck</author>
     <requiremin>8.0</requiremin>
     <namespace>OJSXC</namespace>
 +   <default_enable/>

@@ -1,27 +1,27 @@
---- a/build/ajax/getSettings.php
-+++ b/build/ajax/getSettings.php
+--- a/ajax/getSettings.php
++++ b/ajax/getSettings.php
 @@ -39,8 +39,17 @@
      exit;
  }
  
--$data ['xmpp'] ['url'] = $config->getAppValue('ojsxc', 'boshUrl');
--$data ['xmpp'] ['domain'] = $config->getAppValue('ojsxc', 'xmppDomain');
+-$data ['xmpp'] ['url'] = trim($config->getAppValue('ojsxc', 'boshUrl'));
+-$data ['xmpp'] ['domain'] = trim($config->getAppValue('ojsxc', 'xmppDomain'));
 +$request = \OC::$server->getRequest();
-+$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
++$boshUrl = trim($config->getAppValue('ojsxc', 'boshUrl'));
 +if (empty($boshUrl) && $request) {
 +  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
 +}
 +$data ['xmpp'] ['url'] = $boshUrl;
-+$xmppDomain = $config->getAppValue('ojsxc', 'xmppDomain');
++$xmppDomain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
 +if (empty($xmppDomain)) {
 +  $xmppDomain = $request->getServerHost();
 +}
 +$data ['xmpp'] ['domain'] = $xmppDomain;
- $data ['xmpp'] ['resource'] = $config->getAppValue('ojsxc', 'xmppResource');
+ $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
  $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
  $data ['xmpp'] ['onlogin'] = true;
---- a/build/settings.php
-+++ b/build/settings.php
+--- a/settings.php
++++ b/settings.php
 @@ -8,8 +8,17 @@
  $tmpl = new OCP\Template('ojsxc', 'settings');
  

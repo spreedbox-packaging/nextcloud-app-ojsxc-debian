@@ -1,9 +1,0 @@
---- a/build/appinfo/info.xml
-+++ b/build/appinfo/info.xml
-@@ -38,5 +38,6 @@
-       <lib>xmlwriter</lib>
-       <lib>dom</lib>
-       <owncloud min-version="8.0" max-version="9.2"/>
-+      <nextcloud min-version="10" max-version="11" />
-    </dependencies>
- </info>
