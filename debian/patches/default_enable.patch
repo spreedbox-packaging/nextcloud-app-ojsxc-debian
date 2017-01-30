@@ -1,8 +1,8 @@
 --- a/appinfo/info.xml
 +++ b/appinfo/info.xml
-@@ -11,6 +11,7 @@
+@@ -10,6 +10,7 @@
+    <author mail="klaus@jsxc.org">Klaus Herberth</author>
     <author>Tobia De Koninck</author>
-    <requiremin>8.0</requiremin>
     <namespace>OJSXC</namespace>
 +   <default_enable/>
  

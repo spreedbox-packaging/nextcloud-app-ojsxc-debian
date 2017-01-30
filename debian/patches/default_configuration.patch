@@ -1,8 +1,8 @@
 --- a/ajax/getSettings.php
 +++ b/ajax/getSettings.php
-@@ -39,8 +39,17 @@
-     exit;
- }
+@@ -42,8 +42,17 @@
+ $data ['screenMediaExtension']['firefox'] = trim($config->getAppValue('ojsxc', 'firefoxExtension'));
+ $data ['screenMediaExtension']['chrome'] = trim($config->getAppValue('ojsxc', 'chromeExtension'));
  
 -$data ['xmpp'] ['url'] = trim($config->getAppValue('ojsxc', 'boshUrl'));
 -$data ['xmpp'] ['domain'] = trim($config->getAppValue('ojsxc', 'xmppDomain'));
@@ -39,6 +39,6 @@
 +  $xmppDomain = $request->getServerHost();
 +}
 +$tmpl->assign('xmppDomain', $xmppDomain);
+ $tmpl->assign('xmppPreferMail', $config->getAppValue('ojsxc', 'xmppPreferMail'));
  $tmpl->assign('xmppResource', $config->getAppValue('ojsxc', 'xmppResource'));
  $tmpl->assign('xmppOverwrite', $config->getAppValue('ojsxc', 'xmppOverwrite'));
- $tmpl->assign('xmppStartMinimized', $config->getAppValue('ojsxc', 'xmppStartMinimized'));
