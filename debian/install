@@ -1,3 +1,9 @@
-build/*  usr/lib/nextcloud/www/apps/ojsxc
-auth_ejabberd_oc.php   usr/share/nextcloud-app-ojsxc
-auth_oc_user.php    usr/share/nextcloud-app-ojsxc
+ajax/*	usr/lib/nextcloud/www/apps/ojsxc/ajax
+appinfo/*	usr/lib/nextcloud/www/apps/ojsxc/appinfo
+css/*	usr/lib/nextcloud/www/apps/ojsxc/css
+img/*	usr/lib/nextcloud/www/apps/ojsxc/img
+js/*	usr/lib/nextcloud/www/apps/ojsxc/js
+lib/*	usr/lib/nextcloud/www/apps/ojsxc/lib
+settings.php	usr/lib/nextcloud/www/apps/ojsxc
+templates/*	usr/lib/nextcloud/www/apps/ojsxc/templates
+vendor/*	usr/lib/nextcloud/www/apps/ojsxc/vendor
