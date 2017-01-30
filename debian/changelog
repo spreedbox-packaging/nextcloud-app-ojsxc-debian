@@ -1,3 +1,12 @@
+nextcloud-app-ojsxc (3.0.2-1) trusty; urgency=medium
+
+  * Updated for Nextcloud app.
+  * Imported Upstream version 3.0.2
+  * Updated patches for new upstream version.
+  * Updated files to install for new upstream version.
+
+ -- Joachim Bauch <bauch@struktur.de>  Mon, 30 Jan 2017 11:01:28 +0100
+
 nextcloud-app-ojsxc (3.0.1-1) trusty; urgency=low
 
   * Initial packaged release.
