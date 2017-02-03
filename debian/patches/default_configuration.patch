@@ -22,12 +22,14 @@
  $data ['xmpp'] ['onlogin'] = true;
 --- a/settings.php
 +++ b/settings.php
-@@ -8,8 +8,17 @@
+@@ -7,9 +7,22 @@
+ $config = \OC::$server->getConfig();
  $tmpl = new OCP\Template('ojsxc', 'settings');
  
- $tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType'));
+-$tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType'));
 -$tmpl->assign('boshUrl', $config->getAppValue('ojsxc', 'boshUrl'));
 -$tmpl->assign('xmppDomain', $config->getAppValue('ojsxc', 'xmppDomain'));
++$serverType = $config->getAppValue('ojsxc', 'serverType');
 +$request = \OC::$server->getRequest();
 +$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
 +if (empty($boshUrl) && $request) {
@@ -38,6 +40,10 @@
 +if (empty($xmppDomain)) {
 +  $xmppDomain = $request->getServerHost();
 +}
++if (empty($serverType) && !empty($boshUrl) && !empty($xmppDomain)) {
++  $serverType = 'external';
++}
++$tmpl->assign('serverType', $serverType);
 +$tmpl->assign('xmppDomain', $xmppDomain);
  $tmpl->assign('xmppPreferMail', $config->getAppValue('ojsxc', 'xmppPreferMail'));
  $tmpl->assign('xmppResource', $config->getAppValue('ojsxc', 'xmppResource'));
