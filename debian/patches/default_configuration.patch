@@ -1,6 +1,6 @@
 --- a/ajax/getSettings.php
 +++ b/ajax/getSettings.php
-@@ -42,8 +42,17 @@
+@@ -45,8 +45,17 @@
  $data ['screenMediaExtension']['firefox'] = trim($config->getAppValue('ojsxc', 'firefoxExtension'));
  $data ['screenMediaExtension']['chrome'] = trim($config->getAppValue('ojsxc', 'chromeExtension'));
  
@@ -19,7 +19,7 @@
 +$data ['xmpp'] ['domain'] = $xmppDomain;
  $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
  $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
- $data ['xmpp'] ['onlogin'] = true;
+ $data ['xmpp'] ['onlogin'] = null;
 --- a/settings.php
 +++ b/settings.php
 @@ -7,9 +7,22 @@
