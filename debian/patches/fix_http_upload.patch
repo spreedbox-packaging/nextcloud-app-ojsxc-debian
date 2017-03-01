@@ -1,0 +1,64 @@
+From: Joachim Bauch <bauch@struktur.de>
+Subject: Fix HTTP upload discovery.
+Origin: https://github.com/jsxc/jsxc/pull/465
+--- a/js/jsxc/jsxc.js
++++ b/js/jsxc/jsxc.js
+@@ -2463,8 +2463,10 @@
+  */
+ jsxc.fileTransfer.fileSelected = function(jid, msg, file) {
+    var bid = jsxc.jidToBid(jid);
++   var httpUploadOptions = jsxc.options.get('httpUpload') || {};
++   var maxSizeBytes = httpUploadOptions.maxSize;
+ 
+-   if (file.transportMethod !== 'webrtc' && jsxc.xmpp.httpUpload.ready && file.size > jsxc.options.get('httpUpload').maxSize) {
++   if (file.transportMethod !== 'webrtc' && jsxc.xmpp.httpUpload.ready && maxSizeBytes && file.size > maxSizeBytes) {
+       jsxc.debug('File too large for http upload.');
+ 
+       file.transportMethod = 'webrtc';
+@@ -2472,7 +2474,7 @@
+       jsxc.fileTransfer.selectResource(bid, function(jid) {
+          jsxc.fileTransfer.fileSelected(jid, msg, file);
+       }, function() {
+-         var maxSize = jsxc.fileTransfer.formatByte(jsxc.options.get('httpUpload').maxSize);
++         var maxSize = jsxc.fileTransfer.formatByte(maxSizeBytes);
+          var fileSize = jsxc.fileTransfer.formatByte(file.size);
+ 
+          jsxc.gui.window.postMessage({
+@@ -11760,11 +11762,7 @@
+       return;
+    }
+ 
+-   if (caps.hasFeatureByJid(domain, self.CONST.NS.HTTPUPLOAD)) {
+-      self.discoverUploadService();
+-   } else {
+-      jsxc.debug(domain + ' does not support http upload');
+-   }
++   self.discoverUploadService();
+ };
+ 
+ /**
+@@ -11774,12 +11772,15 @@
+  */
+ jsxc.xmpp.httpUpload.discoverUploadService = function() {
+    var self = jsxc.xmpp.httpUpload;
++   var domain = self.conn.domain;
+ 
+    jsxc.debug('discover http upload service');
+ 
+-   self.queryItemForUploadService(self.conn.domain);
++   if (jsxc.xmpp.conn.caps.hasFeatureByJid(domain, self.CONST.NS.HTTPUPLOAD)) {
++      self.queryItemForUploadService(domain);
++   }
+ 
+-   self.conn.disco.items(self.conn.domain, null, function(items) {
++   self.conn.disco.items(domain, null, function(items) {
+       $(items).find('item').each(function() {
+          var jid = $(this).attr('jid');
+ 
+@@ -12674,4 +12675,4 @@
+ '</div>\n' +
+ '';
+ 
+-}(jQuery));
+\ No newline at end of file
++}(jQuery));
