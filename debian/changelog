@@ -1,3 +1,9 @@
+nextcloud-app-ojsxc (3.1.1-2) trusty; urgency=medium
+
+  * Added patch to fix HTTP upload discovery.
+
+ -- Joachim Bauch <bauch@struktur.de>  Wed, 01 Mar 2017 08:46:33 +0100
+
 nextcloud-app-ojsxc (3.1.1-1) trusty; urgency=medium
 
   * Imported Upstream version 3.1.1
