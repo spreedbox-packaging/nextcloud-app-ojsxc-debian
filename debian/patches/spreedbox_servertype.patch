@@ -1,0 +1,144 @@
+--- a/templates/settings.php
++++ b/templates/settings.php
+@@ -3,6 +3,13 @@
+ 	<form id="ojsxc">
+ 		<div class="form-group">
+ 			<label class="text-left form-no-padding">
++				<input type="radio" name="serverType" class="required" required="required" value="spreedbox" <?php if($_['serverType'] === 'spreedbox')echo 'checked'; ?> />
++				Spreedbox
++			</label>
++			<em>Choose this option to use the XMPP server of the Spreedbox.</em>
++		</div>
++		<div class="form-group">
++			<label class="text-left form-no-padding">
+ 				<input type="radio" name="serverType" required="required" value="internal" <?php if($_['serverType'] === 'internal')echo 'checked'; ?> />
+ 				Internal (Experimental)
+ 			</label>
+@@ -22,8 +29,8 @@
+ 
+ 			</div>
+ 
+-			<div class="ojsxc-external hidden">
+-				<div class="form-group">
++			<div class="ojsxc-external ojsxc-spreedbox hidden">
++				<div class="form-group ojsxc-external">
+ 					<label for="xmppDomain">* XMPP domain</label>
+ 					<div class="form-col">
+ 						<input type="text" name="xmppDomain" id="xmppDomain" class="required" required="required" value="<?php p($_['xmppDomain']); ?>" />
+@@ -33,7 +40,7 @@
+ 					<label for="xmppPreferMail">Prefer mail address to loginName@xmppDomain</label>
+ 					<input type="checkbox" name="xmppPreferMail" id="xmppPreferMail" value="true" <?php if($_[ 'xmppPreferMail']==='true' || $_[ 'xmppPreferMail']===true) echo "checked"; ?> />
+ 				</div>
+-				<div class="form-group">
++				<div class="form-group ojsxc-external">
+ 					<label for="boshUrl">* BOSH url</label>
+ 					<div class="form-col">
+ 						<input type="text" name="boshUrl" id="boshUrl" class="required" required="required" value="<?php p($_['boshUrl']); ?>" />
+@@ -62,7 +69,7 @@
+ 			</div>
+ 		</fieldset>
+ 
+-		<fieldset>
++		<fieldset class="ojsxc-external">
+ 			<h3>ICE server <small>(WebRTC)</small></h3>
+ 			<div class="form-group">
+ 				<label for="iceUrl">Url</label>
+@@ -99,7 +106,7 @@
+ 				</div>
+ 			</div>
+ 		</fieldset>
+-		<fieldset>
++		<fieldset class="ojsxc-external">
+ 			<h3>Screen sharing</h3>
+ 			<div class="form-group">
+ 				<label for="firefoxExtension">Firefox Extension Url</label>
+@@ -116,7 +123,7 @@
+ 				</div>
+ 			</div>
+ 		</fieldset>
+-		<fieldset>
++		<fieldset class="ojsxc-external">
+ 			<h3>CSP <small>Content-Security-Policy</small></h3>
+ 			<div class="form-group">
+ 				<label for="fileUpload">External services</label>
+--- a/settings.php
++++ b/settings.php
+@@ -7,22 +7,9 @@
+ $config = \OC::$server->getConfig();
+ $tmpl = new OCP\Template('ojsxc', 'settings');
+ 
+-$serverType = $config->getAppValue('ojsxc', 'serverType');
+-$request = \OC::$server->getRequest();
+-$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
+-if (empty($boshUrl) && $request) {
+-  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
+-}
+-$tmpl->assign('boshUrl', $boshUrl);
+-$xmppDomain = $config->getAppValue('ojsxc', 'xmppDomain');
+-if (empty($xmppDomain)) {
+-  $xmppDomain = $request->getServerHost();
+-}
+-if (empty($serverType) && !empty($boshUrl) && !empty($xmppDomain)) {
+-  $serverType = 'external';
+-}
+-$tmpl->assign('serverType', $serverType);
+-$tmpl->assign('xmppDomain', $xmppDomain);
++$tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType', 'spreedbox'));
++$tmpl->assign('boshUrl', $config->getAppValue('ojsxc', 'boshUrl'));
++$tmpl->assign('xmppDomain', $config->getAppValue('ojsxc', 'xmppDomain'));
+ $tmpl->assign('xmppPreferMail', $config->getAppValue('ojsxc', 'xmppPreferMail'));
+ $tmpl->assign('xmppResource', $config->getAppValue('ojsxc', 'xmppResource'));
+ $tmpl->assign('xmppOverwrite', $config->getAppValue('ojsxc', 'xmppOverwrite'));
+--- a/ajax/getSettings.php
++++ b/ajax/getSettings.php
+@@ -30,7 +30,7 @@
+ 
+ $data = array();
+ $data ['xmpp'] = array();
+-$data ['serverType'] = $config->getAppValue('ojsxc', 'serverType', 'external');
++$data ['serverType'] = $config->getAppValue('ojsxc', 'serverType', 'spreedbox');
+ $data ['loginForm'] ['startMinimized'] = validateBoolean($config->getAppValue('ojsxc', 'xmppStartMinimized'));
+ 
+ if ($data ['serverType'] === 'internal') {
+@@ -45,16 +45,16 @@
+ $data ['screenMediaExtension']['firefox'] = trim($config->getAppValue('ojsxc', 'firefoxExtension'));
+ $data ['screenMediaExtension']['chrome'] = trim($config->getAppValue('ojsxc', 'chromeExtension'));
+ 
+-$request = \OC::$server->getRequest();
+ $boshUrl = trim($config->getAppValue('ojsxc', 'boshUrl'));
+-if (empty($boshUrl) && $request) {
+-  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
+-}
+-$data ['xmpp'] ['url'] = $boshUrl;
+ $xmppDomain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
+-if (empty($xmppDomain)) {
+-  $xmppDomain = $request->getServerHost();
++if ($data ['serverType'] === 'spreedbox') {
++   $request = \OC::$server->getRequest();
++   if ($request) {
++     $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
++     $xmppDomain = $request->getServerHost();
++   }
+ }
++$data ['xmpp'] ['url'] = $boshUrl;
+ $data ['xmpp'] ['domain'] = $xmppDomain;
+ $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
+ $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
+--- a/js/admin.js
++++ b/js/admin.js
+@@ -107,10 +107,13 @@
+    }
+ 
+    $('#ojsxc [name=serverType]').change(function(){
+-      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal').hide();
+-      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal').find('.required').removeAttr('required');
++      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-spreedbox').hide();
++      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-spreedbox').find('.required').removeAttr('required');
+       $('#ojsxc .ojsxc-' + $(this).val()).show();
+       $('#ojsxc .ojsxc-' + $(this).val()).find('.required').attr('required', 'true');
++      if ($(this).val() === 'spreedbox') {
++         $('#ojsxc .form-group.ojsxc-external').find('.required').removeAttr('required');
++      }
+    });
+    $('#ojsxc [name=serverType]:checked').change();
+ 
