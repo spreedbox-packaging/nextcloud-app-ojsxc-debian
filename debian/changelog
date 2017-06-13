@@ -1,3 +1,10 @@
+nextcloud-app-ojsxc (3.2.1-3) trusty; urgency=medium
+
+  * Added patch to fix broken check for max. upload size.
+  * Simplify patch to change less.
+
+ -- Joachim Bauch <bauch@struktur.de>  Tue, 13 Jun 2017 16:34:31 +0200
+
 nextcloud-app-ojsxc (3.2.1-2) trusty; urgency=medium
 
   * Enable app through "occ" if Nextcloud is already installed.
