@@ -1,3 +1,10 @@
+nextcloud-app-ojsxc (3.2.1-2) trusty; urgency=medium
+
+  * Enable app through "occ" if Nextcloud is already installed.
+  * Support custom server type "spreedbox" in more places for Nextcloud 12.
+
+ -- Joachim Bauch <bauch@struktur.de>  Tue, 13 Jun 2017 16:03:12 +0200
+
 nextcloud-app-ojsxc (3.2.1-1) trusty; urgency=medium
 
   * Imported Upstream version 3.2.1
