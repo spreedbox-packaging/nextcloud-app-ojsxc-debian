@@ -7,7 +7,11 @@
  * Released under the MIT license
  * @author Klaus Herberth <klaus@jsxc.org>
  */
-OCP\App::registerAdmin ( 'ojsxc', 'settings' );
+if (!interface_exists('\OCP\Settings\ISettings')) {
+	\OCP\App::registerAdmin ( 'ojsxc', 'settings/admin' );
+}
+
+\OCP\App::registerPersonal('ojsxc', 'settings/personal');
 
 $jsxc_root = (defined('JSXC_ENV') && JSXC_ENV === 'dev')? 'jsxc/dev/' : 'jsxc/';
 
@@ -58,6 +62,8 @@ if(class_exists('\\OCP\\AppFramework\\Http\\EmptyContentSecurityPolicy')) {
 	$manager->addDefaultPolicy($policy);
 }
 
-require_once __DIR__ ."/../vendor/autoload.php";
+if (!class_exists("\\Sabre\\Xml\\Version")) {
+    require_once __DIR__ . "/../vendor/autoload.php";
+}
 
 ?>
