@@ -142,3 +142,25 @@
     });
     $('#ojsxc [name=serverType]:checked').change();
  
+--- a/lib/Settings/Admin.php
++++ b/lib/Settings/Admin.php
+@@ -30,7 +30,7 @@
+         }
+ 
+         $parameters = [
+-           'serverType' => $this->config->getAppValue('ojsxc', 'serverType'),
++           'serverType' => $this->config->getAppValue('ojsxc', 'serverType', 'spreedbox'),
+            'boshUrl' => $this->config->getAppValue('ojsxc', 'boshUrl'),
+            'xmppDomain' => $this->config->getAppValue('ojsxc', 'xmppDomain'),
+            'xmppPreferMail' => $this->config->getAppValue('ojsxc', 'xmppPreferMail'),
+--- a/lib/ContactsMenu/Providers/ChatProvider.php
++++ b/lib/ContactsMenu/Providers/ChatProvider.php
+@@ -52,7 +52,7 @@
+             $config = \OC::$server->getConfig();
+             $serverType =  $config->getAppValue('ojsxc', 'serverType', 'external');
+ 
+-            if ($serverType === 'internal') {
++            if ($serverType === 'internal' || $serverType === 'spreedbox') {
+                 $domain = \OC::$server->getRequest()->getServerHost();
+             } else {
+                 $domain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
