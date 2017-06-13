@@ -1,6 +1,6 @@
---- a/templates/settings.php
-+++ b/templates/settings.php
-@@ -3,6 +3,13 @@
+--- a/templates/settings/admin.php
++++ b/templates/settings/admin.php
+@@ -12,6 +12,13 @@
  	<form id="ojsxc">
  		<div class="form-group">
  			<label class="text-left form-no-padding">
@@ -14,7 +14,7 @@
  				<input type="radio" name="serverType" required="required" value="internal" <?php if($_['serverType'] === 'internal')echo 'checked'; ?> />
  				Internal (Experimental)
  			</label>
-@@ -22,8 +29,8 @@
+@@ -31,8 +38,8 @@
  
  			</div>
  
@@ -25,7 +25,7 @@
  					<label for="xmppDomain">* XMPP domain</label>
  					<div class="form-col">
  						<input type="text" name="xmppDomain" id="xmppDomain" class="required" required="required" value="<?php p($_['xmppDomain']); ?>" />
-@@ -33,7 +40,7 @@
+@@ -42,7 +49,7 @@
  					<label for="xmppPreferMail">Prefer mail address to loginName@xmppDomain</label>
  					<input type="checkbox" name="xmppPreferMail" id="xmppPreferMail" value="true" <?php if($_[ 'xmppPreferMail']==='true' || $_[ 'xmppPreferMail']===true) echo "checked"; ?> />
  				</div>
@@ -34,7 +34,7 @@
  					<label for="boshUrl">* BOSH url</label>
  					<div class="form-col">
  						<input type="text" name="boshUrl" id="boshUrl" class="required" required="required" value="<?php p($_['boshUrl']); ?>" />
-@@ -62,7 +69,7 @@
+@@ -100,7 +107,7 @@
  			</div>
  		</fieldset>
  
@@ -43,7 +43,7 @@
  			<h3>ICE server <small>(WebRTC)</small></h3>
  			<div class="form-group">
  				<label for="iceUrl">Url</label>
-@@ -99,7 +106,7 @@
+@@ -137,7 +144,7 @@
  				</div>
  			</div>
  		</fieldset>
@@ -52,7 +52,7 @@
  			<h3>Screen sharing</h3>
  			<div class="form-group">
  				<label for="firefoxExtension">Firefox Extension Url</label>
-@@ -116,7 +123,7 @@
+@@ -154,7 +161,7 @@
  				</div>
  			</div>
  		</fieldset>
@@ -61,11 +61,11 @@
  			<h3>CSP <small>Content-Security-Policy</small></h3>
  			<div class="form-group">
  				<label for="fileUpload">External services</label>
---- a/settings.php
-+++ b/settings.php
+--- a/settings/admin.php
++++ b/settings/admin.php
 @@ -7,22 +7,9 @@
  $config = \OC::$server->getConfig();
- $tmpl = new OCP\Template('ojsxc', 'settings');
+ $tmpl = new OCP\Template('ojsxc', 'settings/admin');
  
 -$serverType = $config->getAppValue('ojsxc', 'serverType');
 -$request = \OC::$server->getRequest();
@@ -124,9 +124,9 @@
  $data ['xmpp'] ['domain'] = $xmppDomain;
  $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
  $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
---- a/js/admin.js
-+++ b/js/admin.js
-@@ -107,10 +107,13 @@
+--- a/js/settings/admin.js
++++ b/js/settings/admin.js
+@@ -94,10 +94,13 @@
     }
  
     $('#ojsxc [name=serverType]').change(function(){

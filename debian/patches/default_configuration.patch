@@ -20,11 +20,11 @@
  $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
  $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
  $data ['xmpp'] ['onlogin'] = null;
---- a/settings.php
-+++ b/settings.php
+--- a/settings/admin.php
++++ b/settings/admin.php
 @@ -7,9 +7,22 @@
  $config = \OC::$server->getConfig();
- $tmpl = new OCP\Template('ojsxc', 'settings');
+ $tmpl = new OCP\Template('ojsxc', 'settings/admin');
  
 -$tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType'));
 -$tmpl->assign('boshUrl', $config->getAppValue('ojsxc', 'boshUrl'));

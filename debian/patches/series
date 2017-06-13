@@ -1,5 +1,3 @@
 default_enable.patch
 default_configuration.patch
-fix_http_upload.patch
-fix_login_no_bosh.patch
 spreedbox_servertype.patch
