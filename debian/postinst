@@ -26,6 +26,7 @@ case "$1" in
         if [ -s "/etc/nextcloud/config.php" ]; then
             if [ -x "$OCC" ]; then
                 set +e
+                $OCC app:enable ojsxc
                 $OCC upgrade
                 rc=$?
                 set -e
@@ -38,8 +39,9 @@ case "$1" in
                 fi
             else
                 echo "*************************************************************************"
-                echo "** Please run 'occ.nextcloud upgrade' after the installation to finish **"
-                echo "** upgrading the ojsxc Nextcloud application!                          **"
+                echo "** Please run 'occ.nextcloud app:enable ojsxc' and                     **"
+                echo "** 'occ.nextcloud upgrade' after the installation to finish            **"
+                echo "** installing/upgrading the ojsxc Nextcloud application!               **"
                 echo "*************************************************************************"
             fi
             chmod 775 /etc/nextcloud/
