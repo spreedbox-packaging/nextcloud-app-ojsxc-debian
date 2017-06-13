@@ -1,3 +1,12 @@
+<?php
+/** @var $l \OCP\IL10N */
+/** @var $_ array */
+
+if (function_exists('script')) {
+	script('ojsxc', 'settings/admin');
+}
+?>
+
 <div class="section">
 	<h2>JavaScript Xmpp Client</h2>
 	<form id="ojsxc">
@@ -58,6 +67,35 @@
 				<label for="xmppStartMinimized">Hide roster after first login</label>
 				<div class="form-col">
 					<input type="checkbox" name="xmppStartMinimized" id="xmppStartMinimized" value="true" <?php if($_[ 'xmppStartMinimized']==='true' || $_[ 'xmppStartMinimized']===true) echo "checked"; ?> />
+				</div>
+			</div>
+		</fieldset>
+
+		<fieldset>
+			<div class="ojsxc-external hidden">
+				<h3>External authentication</h3>
+				<p class="text">This information is needed for the ejabberd/prosody
+					<a href="https://github.com/jsxc/ejabberd-cloud-auth" target="_blank">authentication module</a>
+					and can not be changed.</p>
+				<div class="form-group">
+					<label>API URL</label>
+					<div class="form-col">
+						<input id="jsxc-api-url" type="text" readonly="readonly" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label>Secure API token</label>
+					<div class="form-col">
+						<input type="text" readonly="readonly" value="<?php p($_['apiSecret']); ?>" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="timeLimitedToken">Activate time-limited tokens (beta)</label>
+					<div class="form-col">
+						<input type="checkbox" name="timeLimitedToken" id="timeLimitedToken" value="true" <?php if($_[ 'timeLimitedToken']==='true' || $_[ 'timeLimitedToken']===true) echo "checked"; ?> />
+						<em>Activate this checkbox if the XMPP server supports time-limited tokens
+							from <a href="https://github.com/jsxc/xmpp-cloud-auth" target="_blank">xmpp-cloud-auth</a>.</em>
+					</div>
 				</div>
 			</div>
 		</fieldset>

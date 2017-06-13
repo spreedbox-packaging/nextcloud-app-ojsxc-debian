@@ -21,10 +21,10 @@ class StanzaMapper extends Mapper {
 	/**
 	 * StanzaMapper constructor.
 	 *
-	 * @param IDb $db
+	 * @param IDBConnection $db
 	 * @param string $host
 	 */
-	public function __construct(IDb $db, $host) {
+	public function __construct(IDBConnection $db, $host) {
 		parent::__construct($db, 'ojsxc_stanzas');
 		$this->host = $host;
 	}
@@ -39,7 +39,7 @@ class StanzaMapper extends Mapper {
 		$writer->write($entity);
 		$xml = $writer->outputMemory();
 		$sql = "INSERT INTO `*PREFIX*ojsxc_stanzas` (`to`, `from`, `stanza`) VALUES(?,?,?)";
-		$q = $this->db->prepareQuery($sql);
+		$q = $this->db->prepare($sql);
 		$q->execute([$entity->getTo(), $entity->getFrom(), $xml]);
 	}
 
@@ -53,8 +53,8 @@ class StanzaMapper extends Mapper {
 		$stmt = $this->execute("SELECT stanza, id FROM *PREFIX*ojsxc_stanzas WHERE `to`=?", [$to]);
 		$results = [];
 		while($row = $stmt->fetch()){
-			$row['stanza'] = preg_replace('/to="([^"@]*)"/', "to=\"$1@" .$this->host ."\"", $row['stanza']);
-			$row['stanza'] = preg_replace('/from="([^"@]*)"/', "from=\"$1@" .$this->host ."\"", $row['stanza']);
+			$row['stanza'] = preg_replace('/to="([^"@]*)"/', "to=\"$1@" .$this->host ."/internal\"", $row['stanza']);
+			$row['stanza'] = preg_replace('/from="([^"@]*)"/', "from=\"$1@" .$this->host ."/internal\"", $row['stanza']);
 			$results[] = $this->mapRowToEntity($row);
 		}
 		$stmt->closeCursor();
