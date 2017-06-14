@@ -2,3 +2,4 @@ default_enable.patch
 default_configuration.patch
 spreedbox_servertype.patch
 fix_upload_maxsize.patch
+nextcloud12_admin_section.patch
