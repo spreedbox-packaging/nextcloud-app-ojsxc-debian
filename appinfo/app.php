@@ -1,25 +1,18 @@
 <?php
 
-/**
- * ownCloud - JavaScript XMPP Chat
- *
- * Copyright (c) 2014-2015 Klaus Herberth <klaus@jsxc.org> <br>
- * Released under the MIT license
- * @author Klaus Herberth <klaus@jsxc.org>
- */
-if (!interface_exists('\OCP\Settings\ISettings')) {
-	\OCP\App::registerAdmin ( 'ojsxc', 'settings/admin' );
-}
+use OCA\OJSXC\AppInfo\Application;
 
 \OCP\App::registerPersonal('ojsxc', 'settings/personal');
 
-$jsxc_root = (defined('JSXC_ENV') && JSXC_ENV === 'dev')? 'jsxc/dev/' : 'jsxc/';
+$isDevEnv = \OC::$server->getConfig()->getSystemValue('jsxc.environment') === 'dev';
+$jsxc_root = ($isDevEnv)? 'jsxc/dev/' : 'jsxc/';
+$jsProdSuffix = (!$isDevEnv)? '.min' : '';
 
 OCP\Util::addScript ( 'ojsxc', $jsxc_root.'lib/jquery.slimscroll' );
 OCP\Util::addScript ( 'ojsxc', $jsxc_root.'lib/jquery.fullscreen' );
-OCP\Util::addScript ( 'ojsxc', $jsxc_root.'lib/jsxc.dep' );
-OCP\Util::addScript ( 'ojsxc', $jsxc_root.'jsxc' );
-OCP\Util::addScript('ojsxc', 'ojsxc');
+OCP\Util::addScript ( 'ojsxc', $jsxc_root.'lib/jsxc.dep'.$jsProdSuffix );
+OCP\Util::addScript ( 'ojsxc', $jsxc_root.'jsxc'.$jsProdSuffix );
+OCP\Util::addScript ( 'ojsxc', 'ojsxc');
 
 // ############# CSS #############
 OCP\Util::addStyle ( 'ojsxc', 'jsxc.oc' );
@@ -61,6 +54,16 @@ if(class_exists('\\OCP\\AppFramework\\Http\\EmptyContentSecurityPolicy')) {
 
 	$manager->addDefaultPolicy($policy);
 }
+
+$config = \OC::$server->getConfig();
+$apiSecret = $config->getAppValue('ojsxc', 'apiSecret');
+if(!$apiSecret) {
+   $apiSecret = \OC::$server->getSecureRandom()->generate(23);
+   $config->setAppValue('ojsxc', 'apiSecret', $apiSecret);
+}
+
+$app = new Application();
+$app->getContainer()->query('UserHooks')->register();
 
 if (!class_exists("\\Sabre\\Xml\\Version")) {
     require_once __DIR__ . "/../vendor/autoload.php";

@@ -10,12 +10,13 @@ if (function_exists('script')) {
 <div class="section">
 	<h2>JavaScript Xmpp Client</h2>
 	<form id="ojsxc">
+		<h3>Server type</h3>
 		<div class="form-group">
 			<label class="text-left form-no-padding">
 				<input type="radio" name="serverType" required="required" value="internal" <?php if($_['serverType'] === 'internal')echo 'checked'; ?> />
-				Internal (Experimental)
+				Internal
 			</label>
-			<em>Limited functionality only: No clients besides JSXC in ownCloud, no multi-user chat, no server-to-server federations.</em>
+			<em>Limited functionality only: No clients besides JSXC in Nextcloud, no multi-user chat, no server-to-server federations.</em>
 		</div>
 		<div class="form-group">
 			<label class="text-left form-no-padding">
@@ -23,6 +24,13 @@ if (function_exists('script')) {
 				External
 			</label>
 			<em>Choose this option to use your own XMPP server.</em>
+		</div>
+		<div class="form-group">
+			<label class="text-left form-no-padding">
+				<input type="radio" name="serverType" class="required" required="required" value="managed" <?php if($_['serverType'] === 'managed')echo 'checked'; ?> />
+				Managed (Beta service)
+			</label>
+			<em>Get your own full featured XMPP server directly hosted by the core team of JSXC. For more information visit <a target="_blank" href="https://jsxc.ch/managed">jsxc.ch/managed</a>.</em>
 		</div>
 
 		<fieldset>
@@ -72,15 +80,61 @@ if (function_exists('script')) {
 		</fieldset>
 
 		<fieldset>
+			<div class="ojsxc-managed hidden">
+				<h3>Registration</h3>
+				<?php if($_['managedServer'] === 'registered'): ?>
+					<div class="msg jsxc_success">Congratulations! You use our managed server. <a href="#" class="ojsxc-refresh-registration">Redo registration</a>.</div>
+				<?php else: ?>
+					<div class="msg"></div>
+				<?php endif; ?>
+
+				<div class="ojsxc-managed-registration <?php if($_['managedServer'] === 'registered'){echo 'hidden';} ?>">
+					<p class="text">In order to create a managed XMPP server for you, we will send the following information to our registration server. The set-up process will take about 20-30 seconds.</p>
+
+					<div class="form-group">
+						<label>API URL</label>
+						<div class="form-col">
+							<input id="ojsxc-managed-api-url" type="text" readonly="readonly" value="<?php p($_['apiUrl']); ?>" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Secure API token</label>
+						<div class="form-col">
+							<input id="ojsxc-managed-api-secret" type="text" readonly="readonly" value="<?php p($_['apiSecret']); ?>" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Your user id</label>
+						<div class="form-col">
+							<input id="ojsxc-managed-user-id" type="text" readonly="readonly" value="<?php p($_['userId']); ?>" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="ojsxc-managed-promotion-code">Promotion code (if any)</label>
+						<div class="form-col">
+							<input id="ojsxc-managed-promotion-code" type="text" pattern="[a-zA-Z0-9]+" />
+						</div>
+					</div>
+					<div class="form-col-offset">
+						<label><input id="ojsxc-legal" type="checkbox" /> I acknowledge that this is a beta service offered by the <a href="https://jsxc.ch/federated-communication-association">Federated Communication Association</a> without any warranty whatsoever.</label>
+					</div>
+					<div class="form-col-offset">
+						<input id="ojsxc-register" type="button" value="Register" data-toggle-value="Processing registration" disabled="disabled" />
+					</div>
+				</div>
+			</div>
+		</fieldset>
+
+		<fieldset>
 			<div class="ojsxc-external hidden">
 				<h3>External authentication</h3>
-				<p class="text">This information is needed for the ejabberd/prosody
-					<a href="https://github.com/jsxc/ejabberd-cloud-auth" target="_blank">authentication module</a>
+				<p class="text">This information is needed for the ejabberd/Prosody
+					<a href="https://github.com/jsxc/xmpp-cloud-auth/wiki" target="_blank">authentication module</a>
 					and can not be changed.</p>
 				<div class="form-group">
 					<label>API URL</label>
 					<div class="form-col">
-						<input id="jsxc-api-url" type="text" readonly="readonly" />
+						<input id="jsxc-api-url" type="text" readonly="readonly" value="<?php p($_['apiUrl']); ?>" />
 					</div>
 				</div>
 				<div class="form-group">
@@ -94,7 +148,7 @@ if (function_exists('script')) {
 					<div class="form-col">
 						<input type="checkbox" name="timeLimitedToken" id="timeLimitedToken" value="true" <?php if($_[ 'timeLimitedToken']==='true' || $_[ 'timeLimitedToken']===true) echo "checked"; ?> />
 						<em>Activate this checkbox if the XMPP server supports time-limited tokens
-							from <a href="https://github.com/jsxc/xmpp-cloud-auth" target="_blank">xmpp-cloud-auth</a>.</em>
+							through <a href="https://github.com/jsxc/xmpp-cloud-auth" target="_blank">xmpp-cloud-auth</a>.</em>
 					</div>
 				</div>
 			</div>
@@ -103,16 +157,17 @@ if (function_exists('script')) {
 		<fieldset>
 			<h3>ICE server <small>(WebRTC)</small></h3>
 			<div class="form-group">
-				<label for="iceUrl">Url</label>
+				<label for="iceUrl">URLs</label>
 				<div class="form-col">
 					<input type="text" name="iceUrl" id="iceUrl" value="<?php p($_['iceUrl']); ?>" placeholder="stun:stun.stunprotocol.org" pattern="^(stun|turn):.+" />
+					<em>Multiple servers can be separated by ", ".</em>
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="iceUsername">TURN Username</label>
 				<div class="form-col">
 					<input type="text" name="iceUsername" id="iceUsername" value="<?php p($_['iceUsername']); ?>" />
-					<em>If no username is set, TURN-REST-API credentials are used.</em>
+					<em>Leave empty to use the UID of each user.</em>
 				</div>
 			</div>
 			<div class="form-group">
@@ -140,14 +195,14 @@ if (function_exists('script')) {
 		<fieldset>
 			<h3>Screen sharing</h3>
 			<div class="form-group">
-				<label for="firefoxExtension">Firefox Extension Url</label>
+				<label for="firefoxExtension">Firefox Extension URL</label>
 				<div class="form-col">
 					<input type="url" name="firefoxExtension" id="firefoxExtension" value="<?php p($_['firefoxExtension']); ?>" />
 					<em>Firefox needs an extension in order to support screen sharing. <a href="https://github.com/jsxc/jsxc/wiki/Screen-sharing">More details.</a></em>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="chromeExtension">Chrome Extension Url</label>
+				<label for="chromeExtension">Chrome Extension URL</label>
 				<div class="form-col">
 					<input type="url" name="chromeExtension" id="chromeExtension" value="<?php p($_['chromeExtension']); ?>" />
 					<em>Chrome needs an extension in order to support screen sharing. <a href="https://github.com/jsxc/jsxc/wiki/Screen-sharing">More details.</a></em>
@@ -163,7 +218,7 @@ if (function_exists('script')) {
 					<input type="text" name="externalServices[]" value="<?php p($external); ?>" pattern="^(https://)?([\w\d*][\w\d-]*)(\.[\w\d-]+)+(:[\d]+)?$" />
 					<?php endforeach;?>
 					<button class="add-input">+</button>
-					<em>All domains of external services which JSXC should reach. E.g. http file upload service. <a href="#" id="insert-upload-service">Insert upload services automatically</a>.</em>
+					<em>All domains of additional services JSXC should be able to contact, e.g., your XMPP server's http file upload service. <a href="#" id="insert-upload-service">Insert upload services automatically</a>.</em>
 				</div>
 			</div>
 		</fieldset>

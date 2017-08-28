@@ -2,18 +2,31 @@
 
 namespace OCA\OJSXC\AppInfo;
 
+use OCA\OJSXC\Controller\ManagedServerController;
+use OCA\OJSXC\Controller\SettingsController;
+use OCA\OJSXC\Controller\ExternalApiController;
+use OCA\OJSXC\Middleware\ExternalApiMiddleware;
+use OCA\OJSXC\Command\RefreshRoster;
 use OCA\OJSXC\Controller\HttpBindController;
+use OCA\OJSXC\Db\IQRosterPushMapper;
 use OCA\OJSXC\Db\MessageMapper;
 use OCA\OJSXC\Db\PresenceMapper;
+use OCA\OJSXC\Db\Stanza;
 use OCA\OJSXC\Db\StanzaMapper;
+use OCA\OJSXC\Migration\RefreshRoster as RefreshRosterMigration;
 use OCA\OJSXC\NewContentContainer;
+use OCA\OJSXC\RosterPush;
 use OCA\OJSXC\StanzaHandlers\IQ;
 use OCA\OJSXC\StanzaHandlers\Message;
 use OCA\OJSXC\StanzaHandlers\Presence;
+use OCA\OJSXC\StanzaLogger;
+use OCA\OJSXC\RawRequest;
+use OCA\OJSXC\DataRetriever;
 use OCP\AppFramework\App;
 use OCA\OJSXC\ILock;
 use OCA\OJSXC\DbLock;
 use OCA\OJSXC\MemLock;
+use OCA\OJSXC\Hooks;
 use OCP\IContainer;
 use OCP\IRequest;
 
@@ -41,7 +54,7 @@ class Application extends App {
 			return new HttpBindController(
 				$c->query('AppName'),
 				$c->query('Request'),
-				$c->query('UserId'),
+				$c->query('OJSXC_UserId'),
 				$c->query('StanzaMapper'),
 				$c->query('IQHandler'),
 				$c->query('MessageHandler'),
@@ -53,9 +66,58 @@ class Application extends App {
 				file_get_contents("php://input"),
 				self::$config['polling']['sleep_time'],
 				self::$config['polling']['max_cycles'],
-				$c->query('NewContentContainer')
+				$c->query('NewContentContainer'),
+				$c->query('StanzaLogger')
 			);
 		});
+
+		$container->registerService('SettingsController', function(IContainer $c) {
+			return new SettingsController(
+				$c->query('AppName'),
+				$c->query('Request'),
+				$c->query('OCP\IConfig'),
+				$c->query('OCP\IUserManager'),
+				\OC::$server->getUserSession()
+			);
+		});
+
+		$container->registerService('ExternalApiController', function(IContainer $c) {
+			return new ExternalApiController(
+				$c->query('AppName'),
+				$c->query('Request'),
+				$c->query('OCP\IUserManager'),
+				$c->query('OCP\IUserSession'),
+				$c->query('OCP\IGroupManager'),
+				$c->query('OCP\ILogger')
+			);
+		});
+
+		$container->registerService('ManagedServerController', function(IContainer $c) {
+			return new ManagedServerController(
+				$c->query('AppName'),
+				$c->query('Request'),
+				$c->query('OCP\IURLGenerator'),
+				$c->query('OCP\IConfig'),
+				$c->query('OCP\IUserSession'),
+				$c->query('OCP\ILogger'),
+				$c->query('DataRetriever'),
+				$c->query('OCP\Security\ISecureRandom'),
+				'https://xmpp.jsxc.ch/registration'
+			);
+		});
+
+		/**
+		 * Middleware
+		 */
+
+		$container->registerService('ExternalApiMiddleware', function(IContainer $c) {
+			return new ExternalApiMiddleware(
+				$c->query('Request'),
+				$c->query('OCP\IConfig'),
+				$c->query('RawRequest')
+			);
+		});
+		$container->registerMiddleware('ExternalApiMiddleware');
 
 		/**
 		 * Database Layer
@@ -63,14 +125,24 @@ class Application extends App {
 		$container->registerService('MessageMapper', function(IContainer $c) use ($container) {
 			return new MessageMapper(
 				$container->getServer()->getDatabaseConnection(),
-				$c->query('Host')
+				$c->query('Host'),
+				$c->query('StanzaLogger')
+			);
+		});
+
+		$container->registerService('IQRosterPushMapper', function(IContainer $c) use ($container) {
+			return new IQRosterPushMapper(
+				$container->getServer()->getDatabaseConnection(),
+				$c->query('Host'),
+				$c->query('StanzaLogger')
 			);
 		});
 
 		$container->registerService('StanzaMapper', function(IContainer $c) use ($container) {
 			return new StanzaMapper(
 				$container->getServer()->getDatabaseConnection(),
-				$c->query('Host')
+				$c->query('Host'),
+				$c->query('StanzaLogger')
 			);
 		});
 
@@ -78,7 +150,7 @@ class Application extends App {
 			return new PresenceMapper(
 				$container->getServer()->getDatabaseConnection(),
 				$c->query('Host'),
-				$c->query('UserId'),
+				$c->query('OJSXC_UserId'),
 				$c->query('MessageMapper'),
 				$c->query('NewContentContainer'),
 				self::$config['polling']['timeout']
@@ -91,15 +163,16 @@ class Application extends App {
 		 */
 		$container->registerService('IQHandler', function(IContainer $c) {
 			return new IQ(
-				$c->query('UserId'),
+				$c->query('OJSXC_UserId'),
 				$c->query('Host'),
-				$c->query('OCP\IUserManager')
+				$c->query('OCP\IUserManager'),
+				$c->query('OCP\IConfig')
 			);
 		});
 
 		$container->registerService('PresenceHandler', function(IContainer $c) {
 			return new Presence(
-				$c->query('UserId'),
+				$c->query('OJSXC_UserId'),
 				$c->query('Host'),
 				$c->query('PresenceMapper'),
 				$c->query('MessageMapper')
@@ -108,7 +181,7 @@ class Application extends App {
 
 		$container->registerService('MessageHandler', function(IContainer $c) {
 			return new Message(
-				$c->query('UserId'),
+				$c->query('OJSXC_UserId'),
 				$c->query('Host'),
 				$c->query('MessageMapper')
 			);
@@ -127,6 +200,71 @@ class Application extends App {
 			return new NewContentContainer();
 		});
 
+		$container->registerService('StanzaLogger', function(IContainer $c) {
+			return new StanzaLogger(
+				$c->query('\OCP\ILogger'),
+				$c->query('UserId')
+			);
+		});
+
+
+		$container->registerService('RosterPush', function($c) {
+			return new RosterPush(
+				$c->query('ServerContainer')->getUserManager(),
+				$c->query('ServerContainer')->getUserSession(),
+				$c->query('Host'),
+				$c->query('IQRosterPushMapper'),
+				$c->query('ServerContainer')->getDatabaseConnection()
+			);
+		});
+
+		$container->registerService('UserHooks', function($c) {
+			return new Hooks(
+				$c->query('ServerContainer')->getUserManager(),
+				$c->query('ServerContainer')->getUserSession(),
+				$c->query('RosterPush'),
+				$c->query('PresenceMapper'),
+				$c->query('StanzaMapper')
+			);
+		});
+
+		$container->registerService('RefreshRosterCommand', function($c) {
+			return new RefreshRoster(
+				$c->query('ServerContainer')->getUserManager(),
+				$c->query('RosterPush')
+			);
+		});
+
+		/**
+		 * A modified userID for use in OJSXC.
+		 * This is automatically made lowercase.
+		 */
+		$container->registerService('OJSXC_UserId', function(IContainer $c) {
+			return strtolower($c->query('UserId'));
+		});
+
+		/**
+		 * Raw request body
+		 */
+		$container->registerService('RawRequest', function($c) {
+			return new RawRequest();
+		});
+
+		/**
+		 * Data retriever
+		 */
+		$container->registerService('DataRetriever', function($c) {
+			return new DataRetriever();
+		});
+
+		$container->registerService('OCA\OJSXC\Migration\RefreshRoster', function(IContainer $c) {
+			return new RefreshRosterMigration(
+				$c->query('RosterPush'),
+				$c->query('OCP\IConfig'),
+				$c->query('OCP\ILogger')
+			);
+		});
+
 	}
 
 	/**
@@ -142,7 +280,7 @@ class Application extends App {
 			} else if ($cache->isAvailable()) {
 				$memcache = $cache->create('ojsxc');
 				return new MemLock(
-					$c->query('UserId'),
+					$c->query('OJSXC_UserId'),
 					$memcache
 				);
 			} else {
@@ -152,7 +290,7 @@ class Application extends App {
 
 		// default
 		return new DbLock(
-			$c->query('UserId'),
+			$c->query('OJSXC_UserId'),
 			$c->query('OCP\IConfig'),
 			$c->getServer()->getDatabaseConnection()
 		);
