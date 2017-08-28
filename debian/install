@@ -1,4 +1,3 @@
-ajax/*	usr/lib/nextcloud/www/apps/ojsxc/ajax
 appinfo/*	usr/lib/nextcloud/www/apps/ojsxc/appinfo
 css/*	usr/lib/nextcloud/www/apps/ojsxc/css
 img/*	usr/lib/nextcloud/www/apps/ojsxc/img
@@ -6,4 +5,3 @@ js/*	usr/lib/nextcloud/www/apps/ojsxc/js
 lib/*	usr/lib/nextcloud/www/apps/ojsxc/lib
 settings/*	usr/lib/nextcloud/www/apps/ojsxc/settings
 templates/*	usr/lib/nextcloud/www/apps/ojsxc/templates
-vendor/*	usr/lib/nextcloud/www/apps/ojsxc/vendor
