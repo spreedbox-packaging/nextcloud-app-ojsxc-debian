@@ -1,50 +1,58 @@
---- a/ajax/getSettings.php
-+++ b/ajax/getSettings.php
-@@ -45,8 +45,17 @@
- $data ['screenMediaExtension']['firefox'] = trim($config->getAppValue('ojsxc', 'firefoxExtension'));
- $data ['screenMediaExtension']['chrome'] = trim($config->getAppValue('ojsxc', 'chromeExtension'));
+--- a/lib/Controller/SettingsController.php
++++ b/lib/Controller/SettingsController.php
+@@ -70,16 +70,25 @@
+ 			'chrome' => trim($this->getAppValue('chromeExtension'))
+ 		 ];
  
--$data ['xmpp'] ['url'] = trim($config->getAppValue('ojsxc', 'boshUrl'));
--$data ['xmpp'] ['domain'] = trim($config->getAppValue('ojsxc', 'xmppDomain'));
-+$request = \OC::$server->getRequest();
-+$boshUrl = trim($config->getAppValue('ojsxc', 'boshUrl'));
-+if (empty($boshUrl) && $request) {
-+  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
-+}
-+$data ['xmpp'] ['url'] = $boshUrl;
-+$xmppDomain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
-+if (empty($xmppDomain)) {
-+  $xmppDomain = $request->getServerHost();
-+}
-+$data ['xmpp'] ['domain'] = $xmppDomain;
- $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
- $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
- $data ['xmpp'] ['onlogin'] = null;
---- a/settings/admin.php
-+++ b/settings/admin.php
-@@ -7,9 +7,22 @@
- $config = \OC::$server->getConfig();
- $tmpl = new OCP\Template('ojsxc', 'settings/admin');
++		$request = \OC::$server->getRequest();
++		$boshUrl = trim($this->getAppValue('boshUrl'));
++		if (empty($boshUrl) && $request) {
++			$boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
++		}
++		$xmppDomain = trim($this->getAppValue('xmppDomain'));
++		if (empty($xmppDomain)) {
++			$xmppDomain = $request->getServerHost();
++		}
+ 		$data ['xmpp'] = [
+-			'url' => trim($this->getAppValue('boshUrl')),
+-			'domain' => trim($this->getAppValue('xmppDomain')),
++			'url' => $boshUrl,
++			'domain' => $xmppDomain,
+ 			'resource' => trim($this->getAppValue('xmppResource')),
+ 			'overwrite' => $this->getBooleanAppValue('xmppOverwrite'),
+ 			'onlogin' => null
+ 		 ];
  
--$tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType'));
--$tmpl->assign('boshUrl', $config->getAppValue('ojsxc', 'boshUrl'));
--$tmpl->assign('xmppDomain', $config->getAppValue('ojsxc', 'xmppDomain'));
-+$serverType = $config->getAppValue('ojsxc', 'serverType');
-+$request = \OC::$server->getRequest();
-+$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
-+if (empty($boshUrl) && $request) {
-+  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
-+}
-+$tmpl->assign('boshUrl', $boshUrl);
-+$xmppDomain = $config->getAppValue('ojsxc', 'xmppDomain');
-+if (empty($xmppDomain)) {
-+  $xmppDomain = $request->getServerHost();
-+}
-+if (empty($serverType) && !empty($boshUrl) && !empty($xmppDomain)) {
-+  $serverType = 'external';
-+}
-+$tmpl->assign('serverType', $serverType);
-+$tmpl->assign('xmppDomain', $xmppDomain);
- $tmpl->assign('xmppPreferMail', $config->getAppValue('ojsxc', 'xmppPreferMail'));
- $tmpl->assign('xmppResource', $config->getAppValue('ojsxc', 'xmppResource'));
- $tmpl->assign('xmppOverwrite', $config->getAppValue('ojsxc', 'xmppOverwrite'));
+ 		$data ['adminSettings'] = [
+-			'xmppDomain' => trim($this->getAppValue('xmppDomain'))
++			'xmppDomain' => $xmppDomain
+ 		 ];
+ 
+ 		if ($this->getBooleanAppValue('xmppPreferMail') && !$this->getBooleanAppValue('timeLimitedToken')) {
+--- a/lib/Settings/Admin.php
++++ b/lib/Settings/Admin.php
+@@ -28,10 +28,22 @@
+ 
+ 		$apiUrl = \OC::$server->getURLGenerator()->linkToRouteAbsolute('ojsxc.externalApi.index');
+ 
++		$request = \OC::$server->getRequest();
++		$boshUrl = $this->config->getAppValue('ojsxc', 'boshUrl');
++		if (empty($boshUrl) && $request) {
++			$boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
++		}
++		$xmppDomain = $this->config->getAppValue('ojsxc', 'xmppDomain');
++		if (empty($xmppDomain)) {
++			$xmppDomain = $request->getServerHost();
++		}
++		if (empty($serverType) && !empty($boshUrl) && !empty($xmppDomain)) {
++			$serverType = 'external';
++		}
+ 		$parameters = [
+ 		   'serverType' => (!empty($serverType))? $serverType : 'internal',
+-		   'boshUrl' => $this->config->getAppValue('ojsxc', 'boshUrl'),
+-		   'xmppDomain' => $this->config->getAppValue('ojsxc', 'xmppDomain'),
++		   'boshUrl' => $boshUrl,
++		   'xmppDomain' => $xmppDomain,
+ 		   'xmppPreferMail' => $this->config->getAppValue('ojsxc', 'xmppPreferMail'),
+ 		   'xmppResource' => $this->config->getAppValue('ojsxc', 'xmppResource'),
+ 		   'xmppOverwrite' => $this->config->getAppValue('ojsxc', 'xmppOverwrite'),

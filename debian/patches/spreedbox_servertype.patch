@@ -1,7 +1,7 @@
 --- a/templates/settings/admin.php
 +++ b/templates/settings/admin.php
-@@ -12,6 +12,13 @@
- 	<form id="ojsxc">
+@@ -13,6 +13,13 @@
+ 		<h3>Server type</h3>
  		<div class="form-group">
  			<label class="text-left form-no-padding">
 +				<input type="radio" name="serverType" class="required" required="required" value="spreedbox" <?php if($_['serverType'] === 'spreedbox')echo 'checked'; ?> />
@@ -12,9 +12,9 @@
 +		<div class="form-group">
 +			<label class="text-left form-no-padding">
  				<input type="radio" name="serverType" required="required" value="internal" <?php if($_['serverType'] === 'internal')echo 'checked'; ?> />
- 				Internal (Experimental)
+ 				Internal
  			</label>
-@@ -31,8 +38,8 @@
+@@ -39,8 +46,8 @@
  
  			</div>
  
@@ -25,7 +25,7 @@
  					<label for="xmppDomain">* XMPP domain</label>
  					<div class="form-col">
  						<input type="text" name="xmppDomain" id="xmppDomain" class="required" required="required" value="<?php p($_['xmppDomain']); ?>" />
-@@ -42,7 +49,7 @@
+@@ -50,7 +57,7 @@
  					<label for="xmppPreferMail">Prefer mail address to loginName@xmppDomain</label>
  					<input type="checkbox" name="xmppPreferMail" id="xmppPreferMail" value="true" <?php if($_[ 'xmppPreferMail']==='true' || $_[ 'xmppPreferMail']===true) echo "checked"; ?> />
  				</div>
@@ -34,7 +34,7 @@
  					<label for="boshUrl">* BOSH url</label>
  					<div class="form-col">
  						<input type="text" name="boshUrl" id="boshUrl" class="required" required="required" value="<?php p($_['boshUrl']); ?>" />
-@@ -100,7 +107,7 @@
+@@ -154,7 +161,7 @@
  			</div>
  		</fieldset>
  
@@ -42,8 +42,8 @@
 +		<fieldset class="ojsxc-external">
  			<h3>ICE server <small>(WebRTC)</small></h3>
  			<div class="form-group">
- 				<label for="iceUrl">Url</label>
-@@ -137,7 +144,7 @@
+ 				<label for="iceUrl">URLs</label>
+@@ -192,7 +199,7 @@
  				</div>
  			</div>
  		</fieldset>
@@ -51,8 +51,8 @@
 +		<fieldset class="ojsxc-external">
  			<h3>Screen sharing</h3>
  			<div class="form-group">
- 				<label for="firefoxExtension">Firefox Extension Url</label>
-@@ -154,7 +161,7 @@
+ 				<label for="firefoxExtension">Firefox Extension URL</label>
+@@ -209,7 +216,7 @@
  				</div>
  			</div>
  		</fieldset>
@@ -61,79 +61,16 @@
  			<h3>CSP <small>Content-Security-Policy</small></h3>
  			<div class="form-group">
  				<label for="fileUpload">External services</label>
---- a/settings/admin.php
-+++ b/settings/admin.php
-@@ -7,22 +7,9 @@
- $config = \OC::$server->getConfig();
- $tmpl = new OCP\Template('ojsxc', 'settings/admin');
- 
--$serverType = $config->getAppValue('ojsxc', 'serverType');
--$request = \OC::$server->getRequest();
--$boshUrl = $config->getAppValue('ojsxc', 'boshUrl');
--if (empty($boshUrl) && $request) {
--  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
--}
--$tmpl->assign('boshUrl', $boshUrl);
--$xmppDomain = $config->getAppValue('ojsxc', 'xmppDomain');
--if (empty($xmppDomain)) {
--  $xmppDomain = $request->getServerHost();
--}
--if (empty($serverType) && !empty($boshUrl) && !empty($xmppDomain)) {
--  $serverType = 'external';
--}
--$tmpl->assign('serverType', $serverType);
--$tmpl->assign('xmppDomain', $xmppDomain);
-+$tmpl->assign('serverType', $config->getAppValue('ojsxc', 'serverType', 'spreedbox'));
-+$tmpl->assign('boshUrl', $config->getAppValue('ojsxc', 'boshUrl'));
-+$tmpl->assign('xmppDomain', $config->getAppValue('ojsxc', 'xmppDomain'));
- $tmpl->assign('xmppPreferMail', $config->getAppValue('ojsxc', 'xmppPreferMail'));
- $tmpl->assign('xmppResource', $config->getAppValue('ojsxc', 'xmppResource'));
- $tmpl->assign('xmppOverwrite', $config->getAppValue('ojsxc', 'xmppOverwrite'));
---- a/ajax/getSettings.php
-+++ b/ajax/getSettings.php
-@@ -30,7 +30,7 @@
- 
- $data = array();
- $data ['xmpp'] = array();
--$data ['serverType'] = $config->getAppValue('ojsxc', 'serverType', 'external');
-+$data ['serverType'] = $config->getAppValue('ojsxc', 'serverType', 'spreedbox');
- $data ['loginForm'] ['startMinimized'] = validateBoolean($config->getAppValue('ojsxc', 'xmppStartMinimized'));
- 
- if ($data ['serverType'] === 'internal') {
-@@ -45,16 +45,16 @@
- $data ['screenMediaExtension']['firefox'] = trim($config->getAppValue('ojsxc', 'firefoxExtension'));
- $data ['screenMediaExtension']['chrome'] = trim($config->getAppValue('ojsxc', 'chromeExtension'));
- 
--$request = \OC::$server->getRequest();
- $boshUrl = trim($config->getAppValue('ojsxc', 'boshUrl'));
--if (empty($boshUrl) && $request) {
--  $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
--}
--$data ['xmpp'] ['url'] = $boshUrl;
- $xmppDomain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
--if (empty($xmppDomain)) {
--  $xmppDomain = $request->getServerHost();
-+if ($data ['serverType'] === 'spreedbox') {
-+   $request = \OC::$server->getRequest();
-+   if ($request) {
-+     $boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
-+     $xmppDomain = $request->getServerHost();
-+   }
- }
-+$data ['xmpp'] ['url'] = $boshUrl;
- $data ['xmpp'] ['domain'] = $xmppDomain;
- $data ['xmpp'] ['resource'] = trim($config->getAppValue('ojsxc', 'xmppResource'));
- $data ['xmpp'] ['overwrite'] = validateBoolean($config->getAppValue('ojsxc', 'xmppOverwrite'));
 --- a/js/settings/admin.js
 +++ b/js/settings/admin.js
 @@ -94,10 +94,13 @@
     }
  
-    $('#ojsxc [name=serverType]').change(function(){
--      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal').hide();
--      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal').find('.required').removeAttr('required');
-+      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-spreedbox').hide();
-+      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-spreedbox').find('.required').removeAttr('required');
+    $('#ojsxc [name=serverType]').change(function() {
+-      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-managed').hide();
+-      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-managed').find('.required').removeAttr('required');
++      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-managed, #ojsxc .ojsxc-spreedbox').hide();
++      $('#ojsxc .ojsxc-external, #ojsxc .ojsxc-internal, #ojsxc .ojsxc-managed, #ojsxc .ojsxc-spreedbox').find('.required').removeAttr('required');
        $('#ojsxc .ojsxc-' + $(this).val()).show();
        $('#ojsxc .ojsxc-' + $(this).val()).find('.required').attr('required', 'true');
 +      if ($(this).val() === 'spreedbox') {
@@ -144,23 +81,55 @@
  
 --- a/lib/Settings/Admin.php
 +++ b/lib/Settings/Admin.php
-@@ -30,7 +30,7 @@
-         }
+@@ -24,26 +24,14 @@
+ 		$externalServices = $this->config->getAppValue('ojsxc', 'externalServices');
+ 		$externalServices = explode("|", $externalServices);
  
-         $parameters = [
--           'serverType' => $this->config->getAppValue('ojsxc', 'serverType'),
-+           'serverType' => $this->config->getAppValue('ojsxc', 'serverType', 'spreedbox'),
-            'boshUrl' => $this->config->getAppValue('ojsxc', 'boshUrl'),
-            'xmppDomain' => $this->config->getAppValue('ojsxc', 'xmppDomain'),
-            'xmppPreferMail' => $this->config->getAppValue('ojsxc', 'xmppPreferMail'),
+-		$serverType = $this->config->getAppValue('ojsxc', 'serverType');
++		$serverType = $this->config->getAppValue('ojsxc', 'serverType', 'spreedbox');
+ 
+ 		$apiUrl = \OC::$server->getURLGenerator()->linkToRouteAbsolute('ojsxc.externalApi.index');
+ 
+-		$request = \OC::$server->getRequest();
+-		$boshUrl = $this->config->getAppValue('ojsxc', 'boshUrl');
+-		if (empty($boshUrl) && $request) {
+-			$boshUrl = 'https://' . $request->getServerHost() . '/http-bind/';
+-		}
+-		$xmppDomain = $this->config->getAppValue('ojsxc', 'xmppDomain');
+-		if (empty($xmppDomain)) {
+-			$xmppDomain = $request->getServerHost();
+-		}
+-		if (empty($serverType) && !empty($boshUrl) && !empty($xmppDomain)) {
+-			$serverType = 'external';
+-		}
+ 		$parameters = [
+ 		   'serverType' => (!empty($serverType))? $serverType : 'internal',
+-		   'boshUrl' => $boshUrl,
+-		   'xmppDomain' => $xmppDomain,
++		   'boshUrl' => $this->config->getAppValue('ojsxc', 'boshUrl'),
++		   'xmppDomain' => $this->config->getAppValue('ojsxc', 'xmppDomain'),
+ 		   'xmppPreferMail' => $this->config->getAppValue('ojsxc', 'xmppPreferMail'),
+ 		   'xmppResource' => $this->config->getAppValue('ojsxc', 'xmppResource'),
+ 		   'xmppOverwrite' => $this->config->getAppValue('ojsxc', 'xmppOverwrite'),
 --- a/lib/ContactsMenu/Providers/ChatProvider.php
 +++ b/lib/ContactsMenu/Providers/ChatProvider.php
-@@ -52,7 +52,7 @@
-             $config = \OC::$server->getConfig();
-             $serverType =  $config->getAppValue('ojsxc', 'serverType', 'external');
+@@ -54,7 +54,7 @@
+ 			$xmppPreferMail = $xmppPreferMail === true || $xmppPreferMail === 'true';
+ 			$serverType = $config->getAppValue('ojsxc', 'serverType', 'external');
  
--            if ($serverType === 'internal') {
-+            if ($serverType === 'internal' || $serverType === 'spreedbox') {
-                 $domain = \OC::$server->getRequest()->getServerHost();
-             } else {
-                 $domain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
+-			if ($serverType === 'internal') {
++			if ($serverType === 'internal' || $serverType === 'spreedbox') {
+ 				$domain = \OC::$server->getRequest()->getServerHost();
+ 			} else {
+ 				$domain = trim($config->getAppValue('ojsxc', 'xmppDomain'));
+--- a/lib/Controller/SettingsController.php
++++ b/lib/Controller/SettingsController.php
+@@ -47,7 +47,7 @@
+ 
+ 		$currentUID = $currentUser->getUID();
+ 
+-		$serverType = $this->getAppValue('serverType');
++		$serverType = $this->getAppValue('serverType', 'spreedbox');
+ 
+ 		$data = [
+ 		 'serverType' => (!empty($serverType))? $serverType : 'internal',
