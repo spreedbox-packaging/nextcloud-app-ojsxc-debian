@@ -3,6 +3,7 @@
 namespace OCA\OJSXC\StanzaHandlers;
 
 use OCA\OJSXC\Db\IQRoster;
+use OCP\IConfig;
 use OCP\IUserManager;
 use Sabre\Xml\Reader;
 use Sabre\Xml\Writer;
@@ -12,7 +13,18 @@ use Sabre\Xml\Writer;
  *
  * @package OCA\OJSXC\StanzaHandlers
  */
-class IQ extends StanzaHandler {
+class IQ extends StanzaHandler
+{
+
+	/**
+	 * @var IUserManager
+	 */
+	private $userManager;
+
+	/**
+	 * @var IConfig
+	 */
+	private $config;
 
 	/**
 	 * IQ constructor.
@@ -20,10 +32,13 @@ class IQ extends StanzaHandler {
 	 * @param string $userId
 	 * @param string $host
 	 * @param IUserManager $userManager
+	 * @param IConfig $config
 	 */
-	public function __construct($userId, $host, IUserManager $userManager) {
+	public function __construct($userId, $host, IUserManager $userManager, IConfig $config)
+	{
 		parent::__construct($userId, $host);
 		$this->userManager = $userManager;
+		$this->config = $config;
 	}
 
 
@@ -31,23 +46,25 @@ class IQ extends StanzaHandler {
 	 * @param array $stanza
 	 * @return IQRoster
 	 */
-	public function handle(array $stanza) {
+	public function handle(array $stanza)
+	{
 		$this->to = $this->getAttribute($stanza, 'to');
 
-		if ($stanza['value'][0]['name'] === '{jabber:iq:roster}query'){
+		// if in debug mode we show the own username in the roster for testing
+		$debugMode = $this->config->getSystemValue("debug");
+
+		if ($stanza['value'][0]['name'] === '{jabber:iq:roster}query') {
 			$id = $stanza['attributes']['id'];
 			$iqRoster = new IQRoster();
 			$iqRoster->setType('result');
 			$iqRoster->setTo($this->from);
 			$iqRoster->setQid($id);
-			foreach($this->userManager->search('') as $user){
-				if($user->getUID() !== $this->userId) {
+			foreach ($this->userManager->search('') as $user) {
+				if ($debugMode || (strtolower($user->getUID()) !== $this->userId)) {
 					$iqRoster->addItem($user->getUID() . '@' . $this->host, $user->getDisplayName());
 				}
 			}
 			return $iqRoster;
 		}
-
 	}
-
 }
